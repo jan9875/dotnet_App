@@ -2,6 +2,7 @@ using System;
 using GameStore.Api.Data;
 using GameStore.Api.DTOS;
 using GameStore.Api.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace GameStore.Api.Endpoints;
 
@@ -9,33 +10,43 @@ public static class GamesEndpoints
 {
     const string GetGameEndpointName = "GetGame";
 
-    private static readonly List<GameDto> games= [ 
-        new (1, "Street Fighter II", "Fighting", 19.99M, new DateOnly(1992,7,15)),
-        new (2, "The Legend of Zelda: Ocarina of Time", "Action-Adventure", 29.99M, new DateOnly(1998,11,21)),
-        new (3, "Super Mario 64", "Platformer", 24.99M, new DateOnly(1996,6,23))
-    ];
-
 
     public static void MapGamesEndpoints(this WebApplication app)
     {   
         var pathGroup=app.MapGroup("/games");
-        pathGroup.MapGet("/", () => {return games;});
 
 
 
-        pathGroup.MapGet("/{id}", (int id) =>
+
+
+        pathGroup.MapGet("/", async (GameStoreContext dbContext) => {
+            var temp=await dbContext.Games
+                                    .Include(game=>game.Genre)
+                                    .Select(game =>new GameSummaryDto(
+                                            game.Id,
+                                            game.Name,
+                                            game.Genre!.Name,
+                                            game.Price,
+                                            game.ReleaseDate
+                                    )).AsNoTracking().ToListAsync();
+            return temp;
+            });
+
+
+
+        pathGroup.MapGet("/{id}", async (int id, GameStoreContext dbContext) =>
         {
-            var game=games.Find(game=>game.Id==id);
-            if (game == null)
+            var game=await dbContext.Games.FindAsync(id);
+            if (game is null)
             {
                 return Results.NotFound();
             }
-            return Results.Ok(game);
+            return Results.Ok(new GameDetailsDto(game.Id,game.Name,game.GenreId,game.Price,game.ReleaseDate));
         }).WithName(GetGameEndpointName);
 
 
 
-        pathGroup.MapPost("/", (CreateGameDto newGame, GameStoreContext dbContext) =>
+        pathGroup.MapPost("/", async (CreateGameDto newGame, GameStoreContext dbContext) =>
         {
             if (string.IsNullOrEmpty(newGame.Name))
             {
@@ -51,7 +62,7 @@ public static class GamesEndpoints
             };
 
             dbContext.Games.Add(game);
-            dbContext.SaveChanges();
+            await dbContext.SaveChangesAsync();
 
             GameDetailsDto gameDetails= new
             (
@@ -65,23 +76,34 @@ public static class GamesEndpoints
         });
 
 
-        pathGroup.MapPut("/{id}", (int id, UpdateGameDto updatedGame) =>
+        pathGroup.MapPut("/{id}", async (int id, UpdateGameDto updatedGame, GameStoreContext dbContext) =>
         {
-            var index=games.FindIndex(game=> game.Id==id);
-            if (index == -1)
+            var existingGame=await dbContext.Games.FindAsync(id);
+            
+            if (existingGame is null)
             {
                 return Results.NotFound();
             }
-            games[index]=new GameDto(id,updatedGame.Name,updatedGame.Genre,updatedGame.Price,updatedGame.ReleaseDate);
+
+            existingGame.Name=updatedGame.Name;
+            existingGame.GenreId=updatedGame.GenreId;
+            existingGame.Price=updatedGame.Price;
+            existingGame.ReleaseDate=updatedGame.ReleaseDate;
+            
+            await dbContext.SaveChangesAsync();
+
             return Results.NoContent();
 
         });
 
 
-        pathGroup.MapDelete("/{id}", (int id) =>
+        pathGroup.MapDelete("/{id}", async (int id, GameStoreContext dbContext) =>
         {
-           games.RemoveAll(game=> game.Id==id);
-           return Results.NoContent(); 
+            await dbContext.Games
+                            .Where(game=> game.Id==id)
+                            .ExecuteDeleteAsync();
+
+            return Results.NoContent(); 
         });
     }
 }
