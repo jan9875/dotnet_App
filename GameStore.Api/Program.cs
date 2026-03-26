@@ -16,3 +16,4 @@ app.MapGenresEndpoints();
 app.MigrateDb();
 
 app.Run();
+public partial class Program { }

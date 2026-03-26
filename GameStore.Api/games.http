@@ -1,9 +1,12 @@
-GET http://localhost:5287/games 
-###
-GET http://localhost:5287/games/1
+@hostAddress=https://app01-gamestore-be-dev-austriaeast-01.azurewebsites.net
 
 ###
-POST http://localhost:5287/games
+GET {{hostAddress}}/games 
+###
+GET {{hostAddress}}/games/1
+
+###
+POST {{hostAddress}}/games
 Content-Type: application/json
 
 {
@@ -13,7 +16,7 @@ Content-Type: application/json
     "releaseDate": "2023-10-20"
 }
 ###
-POST http://localhost:5287/games
+POST {{hostAddress}}/games
 Content-Type: application/json
 
 {
@@ -23,7 +26,7 @@ Content-Type: application/json
     "releaseDate": "1991-02-01"
 }
 ###
-PUT http://localhost:5287/games/5
+PUT {{hostAddress}}/games/5
 Content-Type: application/json
 
 {
@@ -33,4 +36,7 @@ Content-Type: application/json
     "releaseDate": "1992-07-15"
 }
 ###
-DELETE http://localhost:5287/games/3
+DELETE {{hostAddress}}/games/1
+
+###
+GET {{hostAddress}}/genres

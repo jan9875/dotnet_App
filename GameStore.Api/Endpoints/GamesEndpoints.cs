@@ -15,7 +15,7 @@ public static class GamesEndpoints
     {   
         var pathGroup=app.MapGroup("/games");
 
-
+        app.MapGet("/", () => Results.Ok("Hello from Games Endpoint!"));
 
 
 

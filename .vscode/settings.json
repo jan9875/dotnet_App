@@ -1,3 +1,7 @@
 {
-    "dotnet.defaultSolution": "GameStore.slnx"
+    "dotnet.defaultSolution": "GameStore.slnx",
+    "appService.preDeployTask": "publish-release",
+    "appService.deploySubpath": "GameStore.Api/bin/Release/net10.0/publish",
+    
+    
 }

@@ -1,2 +1,4 @@
 GameStore.Api/bin
 GameStore.Api/obj
+GameStore.Api.XUnit/bin
+GameStore.Api.XUnit/obj
