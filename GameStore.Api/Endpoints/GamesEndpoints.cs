@@ -2,6 +2,7 @@ using System;
 using GameStore.Api.Data;
 using GameStore.Api.DTOS;
 using GameStore.Api.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace GameStore.Api.Endpoints;
@@ -19,7 +20,7 @@ public static class GamesEndpoints
 
 
 
-        pathGroup.MapGet("/", async (GameStoreContext dbContext) => {
+        pathGroup.MapGet("/", async ([FromServices]GameStoreContext dbContext) => {
             var temp=await dbContext.Games
                                     .Include(game=>game.Genre)
                                     .Select(game =>new GameSummaryDto(
@@ -34,7 +35,7 @@ public static class GamesEndpoints
 
 
 
-        pathGroup.MapGet("/{id}", async (int id, GameStoreContext dbContext) =>
+        pathGroup.MapGet("/{id}", async ([FromRoute]int id, [FromServices] GameStoreContext dbContext) =>
         {
             var game=await dbContext.Games.FindAsync(id);
             if (game is null)
@@ -46,7 +47,7 @@ public static class GamesEndpoints
 
 
 
-        pathGroup.MapPost("/", async (CreateGameDto newGame, GameStoreContext dbContext) =>
+        pathGroup.MapPost("/", async ([FromBody]CreateGameDto newGame, [FromServices]GameStoreContext dbContext) =>
         {
             if (string.IsNullOrEmpty(newGame.Name))
             {
@@ -76,7 +77,7 @@ public static class GamesEndpoints
         });
 
 
-        pathGroup.MapPut("/{id}", async (int id, UpdateGameDto updatedGame, GameStoreContext dbContext) =>
+        pathGroup.MapPut("/{id}", async ([FromRoute]int id,[FromBody] UpdateGameDto updatedGame,[FromServices] GameStoreContext dbContext) =>
         {
             var existingGame=await dbContext.Games.FindAsync(id);
             
@@ -97,7 +98,7 @@ public static class GamesEndpoints
         });
 
 
-        pathGroup.MapDelete("/{id}", async (int id, GameStoreContext dbContext) =>
+        pathGroup.MapDelete("/{id}", async ([FromRoute]int id, [FromServices]GameStoreContext dbContext) =>
         {
             await dbContext.Games
                             .Where(game=> game.Id==id)

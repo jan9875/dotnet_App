@@ -36,7 +36,7 @@ Content-Type: application/json
     "releaseDate": "1992-07-15"
 }
 ###
-DELETE {{hostAddress}}/games/1
+DELETE {{hostAddress}}/games/3
 
 ###
 GET {{hostAddress}}/genres
